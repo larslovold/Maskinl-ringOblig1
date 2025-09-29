@@ -6,7 +6,7 @@
 
 ## How to run
 ```bash
-python main.py --data diabetes_binary_classification_data.csv --outputs outputs
+py main.py --data diabetes_binary_classification_data.csv --outputs outputs
 ```
 
 ## project structure
