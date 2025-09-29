@@ -160,3 +160,39 @@ def main(args):
 
     fig_roc = plot_multi_roc(roc_list)
     savefig(fig_roc, out_dir/'roc_all_models.png')
+
+
+    coef_df = pd.DataFrame({'feature': X.columns, 'coef': models['LogisticRegression'][1].coef_[0]})
+    coef_df['abs_coef'] = coef_df['coef'].abs()
+    coef_df.sort_values('abs_coef', ascending=False).head(15).to_csv(out_dir/'lr_top_coefficients.csv', index=False)
+
+    importances_gb = pd.Series(models['GradientBoosting'][1].feature_importances_, index=X.columns).sort_values(ascending=False)
+    importances_dt = pd.Series(models['DecisionTree'][1].feature_importances_, index=X.columns).sort_values(ascending=False)
+    importances_gb.head(15).to_csv(out_dir/'gb_top_importances.csv', header=['importance'])
+    importances_dt.head(15).to_csv(out_dir/'dt_top_importances.csv', header=['importance'])
+
+
+    pipe = Pipeline([
+        ('select', SelectKBest(score_func=f_classif, k=10)),
+        ('clf', LogisticRegression(max_iter=500, class_weight='balanced'))
+    ])
+    pipe.fit(X_train, y_train)
+    y_proba_k10 = pipe.predict_proba(X_test)[:, 1]
+    y_pred_k10 = (y_proba_k10 >= 0.5).astype(int)
+    cm_k10 = confusion_matrix(y_test, y_pred_k10)
+    auc_k10 = roc_auc_score(y_test, y_proba_k10)
+
+    pd.DataFrame([{
+        'k': 10, 'roc_auc': auc_k10, **metrics_from_cm(cm_k10), **confusion_dict(cm_k10)
+    }]).to_csv(out_dir/'reduced_features_k10.csv', index=False)
+
+
+    thr = 0.35  
+    y_proba_lr = models['LogisticRegression'][1].predict_proba(models['LogisticRegression'][2])[:,1]
+    y_pred_lr_t = (y_proba_lr >= thr).astype(int)
+    cm_thr = confusion_matrix(y_test, y_pred_lr_t)
+    pd.DataFrame([{
+        'threshold': thr, **metrics_from_cm(cm_thr), **confusion_dict(cm_thr)
+    }]).to_csv(out_dir/'lr_threshold_tuning.csv', index=False)
+
+"adding experiments to check performance"
