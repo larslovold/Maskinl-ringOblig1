@@ -108,6 +108,8 @@ def main(args):
     scaler = StandardScaler()
     X_train_s = scaler.fit_transform(X_train)
     X_test_s = scaler.transform(X_test)
+    lr = LogisticRegression(max_iter=1000, class_weight='balanced')
+    lr.fit(X_train_s, y_train)
     models['LogisticRegression'] = ('lr', lr, X_test_s)
 
     gb = GradientBoostingClassifier(random_state=42, n_estimators=100, max_depth=3)
