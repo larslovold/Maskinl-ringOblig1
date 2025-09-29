@@ -13,3 +13,6 @@ plt.xlabel("GenHlth (1=Excellent … 5=Poor)")
 plt.title("Diabetes Prevalence by Self-Reported General Health")
 plt.tight_layout()
 plt.savefig("outputs/viz_prevalence_by_genhlth.png", dpi=150)
+
+"mkdir -p outputs
+"py viz.py"
