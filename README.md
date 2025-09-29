@@ -11,7 +11,6 @@ py main.py --data diabetes_binary_classification_data.csv --outputs outputs
 
 ## project structure
 ```
-.
 ├── main.py
 ├── diabetes_binary...csv
 ├── README.md
