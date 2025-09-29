@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+# ===== Imports =====
 import os
 import argparse
 import numpy as np
@@ -22,18 +23,22 @@ from sklearn.pipeline import Pipeline
 
 
 def ensure_dir(p: Path):
+ 
     p.mkdir(parents=True, exist_ok=True)
 
 def savefig(fig, path: Path):
+ 
     fig.tight_layout()
     fig.savefig(path, dpi=150, bbox_inches='tight')
     plt.close(fig)
 
 def confusion_dict(cm):
+  
     tn, fp, fn, tp = cm.ravel()
     return {'TN': int(tn), 'FP': int(fp), 'FN': int(fn), 'TP': int(tp)}
 
 def metrics_from_cm(cm):
+  
     tn, fp, fn, tp = cm.ravel()
     acc = (tp + tn) / (tp + tn + fp + fn)
     prec = tp / (tp + fp) if (tp + fp) else np.nan
@@ -43,6 +48,7 @@ def metrics_from_cm(cm):
     return {'accuracy': acc, 'precision': prec, 'recall': rec, 'specificity': spec, 'f1': f1}
 
 def plot_cm(cm, title='Confusion Matrix'):
+   
     from sklearn.metrics import ConfusionMatrixDisplay
     disp = ConfusionMatrixDisplay(confusion_matrix=cm)
     fig, ax = plt.subplots(figsize=(5,4))
@@ -51,9 +57,10 @@ def plot_cm(cm, title='Confusion Matrix'):
     return fig
 
 def plot_roc(fpr, tpr, label):
+
     fig, ax = plt.subplots(figsize=(6,5))
     ax.plot(fpr, tpr, label=label)
-    ax.plot([0,1],[0,1],'--')
+    ax.plot([0,1],[0,1],'--')  
     ax.set_xlabel('False Positive Rate')
     ax.set_ylabel('True Positive Rate')
     ax.set_title('ROC Curve')
@@ -61,6 +68,7 @@ def plot_roc(fpr, tpr, label):
     return fig
 
 def plot_multi_roc(roc_list):
+ 
     fig, ax = plt.subplots(figsize=(6,5))
     for (fpr, tpr, lbl) in roc_list:
         ax.plot(fpr, tpr, label=lbl)
@@ -71,14 +79,15 @@ def plot_multi_roc(roc_list):
     ax.legend()
     return fig
 
+
 def main(args):
     data_path = Path(args.data)
     out_dir = Path(args.outputs)
     ensure_dir(out_dir)
 
     df = pd.read_csv(data_path)
-    df.columns = [c.strip() for c in df.columns]
-    target = 'Diabetes_binary'
+    df.columns = [c.strip() for c in df.columns]  
+    target = 'Diabetes_binary' 
 
     eda = {}
     eda['shape'] = {'rows': int(df.shape[0]), 'cols': int(df.shape[1])}
@@ -96,13 +105,13 @@ def main(args):
         ax.set_title('Diabetes Prevalence by Self-Reported General Health')
         savefig(fig, out_dir/'viz_prevalence_by_genhlth.png')
 
-    X = df.drop(columns=[target])
-    y = df[target]
+    X = df.drop(columns=[target])  
+    y = df[target]                 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y
     )
 
-    # -------- Models --------
+
     models = {}
 
     scaler = StandardScaler()
@@ -116,8 +125,7 @@ def main(args):
     gb.fit(X_train, y_train)
     models['GradientBoosting'] = ('gb', gb, X_test)
 
+
     dt = DecisionTreeClassifier(max_depth=6, random_state=42, class_weight='balanced')
     dt.fit(X_train, y_train)
     models['DecisionTree'] = ('dt', dt, X_test)
-
-  
