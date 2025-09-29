@@ -129,3 +129,34 @@ def main(args):
     dt = DecisionTreeClassifier(max_depth=6, random_state=42, class_weight='balanced')
     dt.fit(X_train, y_train)
     models['DecisionTree'] = ('dt', dt, X_test)
+
+  
+    results = []   
+    roc_list = []  
+
+    for name, (_, mdl, X_eval) in models.items():
+        if hasattr(mdl, 'predict_proba'):
+            y_proba = mdl.predict_proba(X_eval)[:, 1]
+        else:
+            from sklearn.preprocessing import MinMaxScaler
+            y_proba = mdl.decision_function(X_eval).reshape(-1,1)
+            y_proba = MinMaxScaler().fit_transform(y_proba).ravel()
+
+        y_pred = (y_proba >= 0.5).astype(int)
+
+        cm = confusion_matrix(y_test, y_pred)
+        auc = roc_auc_score(y_test, y_proba)
+        met = metrics_from_cm(cm)
+        met.update({'model': name, 'roc_auc': auc})
+        results.append(met)
+
+        fig_cm = plot_cm(cm, title=f'Confusion Matrix - {name} (thr=0.50)')
+        savefig(fig_cm, out_dir/f'cm_{name}.png')
+
+        fpr, tpr, _ = roc_curve(y_test, y_proba)
+        roc_list.append((fpr, tpr, f'{name} (AUC={auc:.3f})'))
+
+    pd.DataFrame(results).to_csv(out_dir/'model_results.csv', index=False)
+
+    fig_roc = plot_multi_roc(roc_list)
+    savefig(fig_roc, out_dir/'roc_all_models.png')
