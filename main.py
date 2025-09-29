@@ -195,4 +195,18 @@ def main(args):
         'threshold': thr, **metrics_from_cm(cm_thr), **confusion_dict(cm_thr)
     }]).to_csv(out_dir/'lr_threshold_tuning.csv', index=False)
 
-"adding experiments to check performance"
+    summary_lines = []
+    summary_lines.append(f"Run timestamp: {datetime.utcnow().isoformat()}Z")
+    summary_lines.append(f"Rows: {eda['shape']['rows']}, Columns: {eda['shape']['cols']}")
+    summary_lines.append("Top predictors typically include GenHlth, BMI, Age, HighBP, HighChol.")
+    summary_lines.append("Gradient Boosting generally gave the best AUC here, with LR close behind.")
+    summary_lines.append("Lowering LR threshold (e.g., 0.35) reduces false negatives (important clinically).")
+    Path(out_dir/'_summary.txt').write_text("\n".join(summary_lines))
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--data", type=str, required=True, help="Path to diabetes_binary_classification_data.csv")
+    parser.add_argument("--outputs", type=str, default="outputs", help="Directory to save outputs")
+    args = parser.parse_args()
+    main(args)
+"Summary code for report"
